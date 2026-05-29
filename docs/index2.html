@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>E-Commerce App</title>
+
+  <style>
+
+    body{
+      font-family:Arial;
+      padding:20px;
+    }
+
+    .top{
+      display:flex;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    .products{
+      display:flex;
+      flex-wrap:wrap;
+      gap:20px;
+    }
+
+    .card{
+      width:220px;
+      border:1px solid gray;
+      padding:15px;
+      border-radius:10px;
+      text-align:center;
+    }
+
+    .card img{
+      width:120px;
+      height:120px;
+      object-fit:contain;
+    }
+
+    button{
+      padding:8px 15px;
+      cursor:pointer;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h1>Mini E-Commerce</h1>
+
+  <div class="top">
+
+    <input type="text" id="search" placeholder="Search Product">
+
+    <select id="category">
+      <option value="all">All</option>
+      <option value="electronics">Electronics</option>
+      <option value="jewelery">Jewelery</option>
+      <option value="men's clothing">Men</option>
+      <option value="women's clothing">Women</option>
+    </select>
+
+    <select id="sort">
+      <option value="default">Sort Price</option>
+      <option value="low">Low to High</option>
+      <option value="high">High to Low</option>
+    </select>
+
+  </div>
+
+  <h2>Cart Total: ₹ <span id="total">0</span></h2>
+
+  <div class="products" id="products"></div>
+
+  <script>
+
+    let allProducts = [];
+    let cart = [];
+
+    // Fetch Products
+    async function fetchProducts(){
+
+      let response = await fetch("https://fakestoreapi.com/products/");
+
+      let data = await response.json();
+
+      allProducts = data;
+
+      displayProducts(allProducts);
+    }
+
+    // Display Products
+    function displayProducts(products){
+
+      let cards = products.map((product)=>{
+
+        return `
+          <div class="card">
+
+            <img src="${product.image}">
+
+            <h4>${product.title}</h4>
+
+            <p>₹ ${product.price}</p>
+
+            <button onclick="addToCart(${product.id})">
+              Add To Cart
+            </button>
+
+          </div>
+        `;
+      });
+
+      document.getElementById("products").innerHTML =
+      cards.join("");
+    }
+
+    // Add To Cart
+    function addToCart(id){
+
+      let product = allProducts.find((item)=>{
+        return item.id === id;
+      });
+
+      cart.push(product);
+
+      calculateTotal();
+    }
+
+    // Total Calculation
+    function calculateTotal(){
+
+      let total = cart.reduce((sum,item)=>{
+        return sum + item.price;
+      },0);
+
+      document.getElementById("total").innerText =
+      total.toFixed(2);
+    }
+
+    // Search Product
+    document.getElementById("search")
+    .addEventListener("input",(e)=>{
+
+      let text = e.target.value.toLowerCase();
+
+      let filtered = allProducts.filter((item)=>{
+        return item.title.toLowerCase().includes(text);
+      });
+
+      displayProducts(filtered);
+    });
+
+    // Filter Category
+    document.getElementById("category")
+    .addEventListener("change",(e)=>{
+
+      let category = e.target.value;
+
+      let filtered;
+
+      if(category === "all"){
+        filtered = allProducts;
+      }
+      else{
+        filtered = allProducts.filter((item)=>{
+          return item.category === category;
+        });
+      }
+
+      displayProducts(filtered);
+    });
+
+    // Sort Price
+    document.getElementById("sort")
+    .addEventListener("change",(e)=>{
+
+      let value = e.target.value;
+
+      let sorted = [...allProducts];
+
+      if(value === "low"){
+
+        sorted.sort((a,b)=>{
+          return a.price - b.price;
+        });
+
+      }
+      else if(value === "high"){
+
+        sorted.sort((a,b)=>{
+          return b.price - a.price;
+        });
+
+      }
+
+      displayProducts(sorted);
+    });
+
+    fetchProducts();
+
+  </script>
+
+</body>
+</html>
